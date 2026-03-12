@@ -443,6 +443,16 @@ parts:
 #      patch -p1 -d $SNAPCRAFT_PART_INSTALL/lib/python2.7/site-packages/certbot < $SNAPCRAFT_STAGE/certbot-remove-default-config-files.patch
 #      patch -p1 -d $SNAPCRAFT_PART_INSTALL/lib/python2.7/site-packages/certbot < $SNAPCRAFT_STAGE/certbot-remove-storage-chown.patch
 
+  acme-client:
+    plugin: dump
+    source: https://github.com/acmesh-official/acme.sh/archive/refs/tags/3.1.2.tar.gz
+    source-checksum: sha256/a51511ad0e2912be45125cf189401e4ae776ca1a29d5768f020a1e35a9560186
+
+    organize:
+      'acme.sh': bin/acme.sh
+    stage:
+      - bin/acme.sh
+
   setup-https:
     plugin: dump
     source: src/https/
