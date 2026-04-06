@@ -188,7 +188,7 @@ parts:
 
   php:
     plugin: autotools
-    source: https://www.php.net/distributions/php-8.3.29.tar.bz2
+    source: https://mirror.cogentco.com/pub/php/php-8.3.29.tar.bz2
     source-checksum: sha256/c7337212e655325d499ea8108fa76f69ddde2fff7cb0fad36aa63eed540cb8a5
     source-type: tar
     autotools-configure-parameters:
