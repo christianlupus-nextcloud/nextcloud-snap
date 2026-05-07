@@ -93,20 +93,38 @@ mv "$SNAP_CURRENT/certs/certbot" "$SNAP_CURRENT/certs/certbot.legacy"
 
 printf "Migrating certbot configuration to use the webroot plugin... "
 
+trap_for_error() {
+    retVal=$?
+
+    # No issue found. We are safe. Exit with success.
+    if [ "$retVal" -eq 0 ]; then
+        exit 0
+    fi
+
+    echo "An error occurred during the migration process. Restoring legacy certbot configuration."
+
+    rm -rf "$SNAP_CURRENT/certs/certbot"
+    mv "$SNAP_CURRENT/certs/certbot.legacy" "$SNAP_CURRENT/certs/certbot"
+
+    exit "$retVal"
+}
+# Install a trap in case something goes wrong during the migration process, so we can restore the
+# legacy configuration and avoid leaving the user with a broken certbot configuration.
+trap trap_for_error EXIT INT TERM HUP
+
 # Building CLI commands, so we don't WANT to quote some of these (they need
 # to be separated by whitespace): disable the check
 # shellcheck disable=SC2086
 if output="$(run_certbot_certonly $extra_params 2>&1)"; then
     echo "success"
+
+    # Disable the trap to avoid restoring the legacy configuration after a successful migration
+    trap - EXIT INT TERM HUP
 else
     echo "failed!"
     echo "error running certbot:" >&2
     echo "" >&2
     echo "$output" >&2
-
-    echo "Restoring legacy certbot configuration."
-    rm -rf "$SNAP_CURRENT/certs/certbot"
-    mv "$SNAP_CURRENT/certs/certbot.legacy" "$SNAP_CURRENT/certs/certbot"
 
     exit 1
 fi
