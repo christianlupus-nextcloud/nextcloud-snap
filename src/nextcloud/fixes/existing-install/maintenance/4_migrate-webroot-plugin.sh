@@ -55,7 +55,6 @@ echo "Found domains to be migrated: $domains"
 
 # Collect all parameters to be used with certbot.
 extra_params=""
-dry_run=n
 
 # Check the current ACME server
 acme_server=$(grep -E "^server\s*=\s*" "$RENEWAL_CONFIG_FILE" | sed -e 's/^[[:space:]]*server\s*=\s*//g')
@@ -65,7 +64,6 @@ if [ "$acme_server" = "https://acme-v02.api.letsencrypt.org/directory" ]; then
 elif [ "$acme_server" = "https://acme-staging-v02.api.letsencrypt.org/directory" ]; then
     # Staging ACME server, so we need to add the --staging flag to the certbot command
     extra_params="--staging"
-    dry_run=y
 else
     echo "error: unrecognized ACME server: $acme_server" >&2
     exit 1
@@ -88,10 +86,6 @@ else
     echo "" >&2
     echo "$output" >&2
     exit 1
-fi
-
-if [ "$dry_run" = "y" ]; then
-    extra_params="$extra_params --staging"
 fi
 
 # Moving the legacy plugin to a temporary location.
