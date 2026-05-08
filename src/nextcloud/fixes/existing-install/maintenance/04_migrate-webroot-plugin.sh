@@ -22,7 +22,7 @@ if self_signed_certificates_are_active || custom_certificates_are_active; then
 fi
 
 certdir="$(get_most_recent_certificate_directory)"
-RENEWAL_CONFIG_FILE="$SNAP_CURRENT/certs/certbot/renewal/$certdir.conf"
+RENEWAL_CONFIG_FILE="$SNAP_CURRENT/certs/certbot/config/renewal/$certdir.conf"
 
 if [ ! -f "$RENEWAL_CONFIG_FILE" ]; then
     echo "no (renewal config file not found)"
