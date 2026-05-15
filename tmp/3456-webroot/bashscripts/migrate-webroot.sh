@@ -99,3 +99,10 @@ echo Renewal script
 echo ==============================
 cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
 echo ==============================
+
+echo "Run NC fixer"
+systemctl start snap.nextcloud.nextcloud-fixer
+echo ==============================
+cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
+echo ==============================
+
