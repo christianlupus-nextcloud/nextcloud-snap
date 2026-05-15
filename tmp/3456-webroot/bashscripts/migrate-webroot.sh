@@ -1,13 +1,46 @@
-#!/bin/bash
+#!/bin/bash -x
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <domains> <settings>"
-    echo "Example: $0 'clouding1.d.christian-wolf.click' '-t'"
+    echo "Example: $0 'clouding1.d.christian-wolf.click' foo@example.com '-t'"
     exit 1
 fi
 
+maintenance_mode() {
+    status=$(curl --insecure -s https://clouding1.d.christian-wolf.click/status.php) || { return 0; }
+    test $(echo "$status" | jq .maintenance) = true
+}
+
+wait_for_nc() {
+    echo "Waiting for Nextcloud to be ready..."
+    while ! nextcloud.occ status &> /dev/null; do
+        sleep 5
+    done
+    while maintenance_mode
+    do
+        sleep 5
+    done
+}
+
+run_repairs() {
+echo "Run some maintenance commands to update the database and fix missing indices and mimetypes..."
+## update database
+nextcloud.occ maintenance:mimetype:update-db
+## fix missing indices
+nextcloud.occ db:add-missing-indices
+## fix missing mimetypes
+nextcloud.occ maintenance:repair --include-expensive
+}
+
+printconfig() {
+echo ==============================
+cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
+echo ==============================
+}
+
 domains="$1"
-settings="$2"
+mail="$2"
+settings="$3"
 
 echo Installing Nextcloud snap package...
 snap install --channel 14 nextcloud
@@ -30,13 +63,7 @@ nextcloud.occ config:system:set overwriteprotocol --value="https"
 ## disable appapi
 nextcloud.occ app:disable app_api
 
-echo "Run some maintenance commands to update the database and fix missing indices and mimetypes..."
-## update database
-nextcloud.occ maintenance:mimetype:update-db
-## fix missing indices
-nextcloud.occ db:add-missing-indices
-## fix missing mimetypes
-nextcloud.occ maintenance:repair --include-expensive
+run_repairs
 
 ## set mail address in user profile for admin user ##
 #nextcloud.occ occ user:setting <ADMINUSER> settings email "<ADMINUSER>@example.tld>"
@@ -46,7 +73,7 @@ echo "Set up Certs"
 ## recommend start Lets Encrypt certification using built in service, see Wiki 
 nextcloud.enable-https lets-encrypt $settings << EOF
 y
-foo@example.com
+$mail
 $domains
 EOF
 
@@ -64,11 +91,12 @@ for version in $(seq 15 32)
 do
     echo "Refreshing to version $version..."
     snap refresh --channel=$version nextcloud
-    echo "Waiting for Nextcloud to be ready..."
-    while ! nextcloud.occ status &> /dev/null; do
-        sleep 5
-    done
+    echo "Wait 10 secs"
+    sleep 10
+    wait_for_nc
+    run_repairs
     echo "Nextcloud v$version is ready!"
+    # exit 1
 done
 
 echo
@@ -76,9 +104,7 @@ echo "All versions from 15 to 32 have been refreshed and are ready!"
 echo
 
 echo Renewal script
-echo ==============================
-cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
-echo ==============================
+printconfig
 
 echo
 echo "Please check the certificate"
@@ -87,22 +113,16 @@ read -p "Press any key to continue... " -n1 -s
 echo
 
 echo "Install PR version"
-snap refresh --channel beta/pr-3456 nextcloud
-echo "Waiting for Nextcloud to be ready..."
-while ! nextcloud.occ status &> /dev/null; do
-    sleep 5
-done
+snap refresh --channel latest/eta/pr-3456 nextcloud
+sleep 10
+wait_for_nc
 echo "Nextcloud PR #3456 is ready!"
 
 echo
 echo Renewal script
-echo ==============================
-cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
-echo ==============================
+printconfig
 
 echo "Run NC fixer"
 systemctl start snap.nextcloud.nextcloud-fixer
-echo ==============================
-cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
-echo ==============================
+printconfig
 
