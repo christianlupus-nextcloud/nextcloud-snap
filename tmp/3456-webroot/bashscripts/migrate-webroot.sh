@@ -34,7 +34,7 @@ nextcloud.occ maintenance:repair --include-expensive
 
 printconfig() {
 echo ==============================
-cat /var/snap/nextcloud/current/certs/certbot/configs/renewal/clouding1.d.christian-wolf.click.conf
+cat /var/snap/nextcloud/current/certs/certbot/config/renewal/clouding1.d.christian-wolf.click.conf
 echo ==============================
 }
 
@@ -113,7 +113,7 @@ read -p "Press any key to continue... " -n1 -s
 echo
 
 echo "Install PR version"
-snap refresh --channel latest/eta/pr-3456 nextcloud
+snap refresh --channel latest/beta/pr-3456 nextcloud
 sleep 10
 wait_for_nc
 echo "Nextcloud PR #3456 is ready!"
