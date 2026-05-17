@@ -81,10 +81,12 @@ EOF
 #truncate -s 0 /var/snap/nextcloud/current/logs/nextcloud.log ; 
 #snap restart nextcloud ;
 
+printconfig
+
 echo
 echo "OK, we should be done, you can now access your Nextcloud instance at https://clouding1.d.christian-wolf.click with username admin and password admin1234_"
 echo "Next, I am going to refresh the snap to the latest (stable) channel."
-read -p "Press any key to continue... " -n1 -s
+#read -p "Press any key to continue... " -n1 -s
 echo
 
 for version in $(seq 15 32)
@@ -109,7 +111,7 @@ printconfig
 echo
 echo "Please check the certificate"
 echo "Next, I am going to refresh the snap to the latest PR version (beta/pr-3456)."
-read -p "Press any key to continue... " -n1 -s
+#read -p "Press any key to continue... " -n1 -s
 echo
 
 echo "Install PR version"
